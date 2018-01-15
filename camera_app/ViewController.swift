@@ -9,9 +9,13 @@
 import UIKit
 import AVKit
 import Vision
+import AVFoundation // Don't know if we need it at all
 
 class ViewController: UIViewController, AVCaptureVideoDataOutputSampleBufferDelegate {
 
+    @IBOutlet weak var cameraView: UIView!
+    @IBOutlet weak var objectData: UILabel!
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         let captureSession = AVCaptureSession()
@@ -20,8 +24,8 @@ class ViewController: UIViewController, AVCaptureVideoDataOutputSampleBufferDele
         captureSession.addInput(input)
         captureSession.startRunning()
         let previewLayer = AVCaptureVideoPreviewLayer(session: captureSession)
-        view.layer.addSublayer(previewLayer)
-        previewLayer.frame = view.frame
+        cameraView.layer.addSublayer(previewLayer)
+        previewLayer.frame = cameraView.bounds
         
         let dataOutput = AVCaptureVideoDataOutput()
         dataOutput.setSampleBufferDelegate(self, queue: DispatchQueue(label: "videoQueue"))
@@ -37,7 +41,10 @@ class ViewController: UIViewController, AVCaptureVideoDataOutputSampleBufferDele
             // process error
             guard let results = finishedReq.results as? [VNClassificationObservation] else { return }
             guard let firstObservation = results.first else { return }
-            print (firstObservation.identifier, firstObservation.confidence)
+            DispatchQueue.main.async {
+                self.objectData!.text = firstObservation.identifier
+            }
+//            print (firstObservation.identifier, firstObservation.confidence)
         }
         try? VNImageRequestHandler(cvPixelBuffer: pixelBuffer, options: [:]).perform([request])
     }
